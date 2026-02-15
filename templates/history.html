@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🕒 History – InstruNet AI</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ================= TOP NAV BAR ================= -->
+<div class="top-nav">
+  <div class="nav-left">
+    🎵 <b>InstruNet AI</b>
+  </div>
+  <div class="nav-links">
+    <a href="/home">Home</a>
+    <a href="/analysis">Analysis</a>
+    <a href="/results">Results</a>
+    <a href="/history" class="active">History</a>
+    <a href="/about">About</a>
+  </div>
+</div>
+<!-- ================= END TOP NAV ================= -->
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🕒 Analysis History</h1>
+    <p>Previously analyzed audio files</p>
+  </div>
+
+  <!-- <button onclick="clearHistory()" class="clear-btn">
+  🗑 Clear History
+  </button> -->
+
+
+  <!-- GRID -->
+  <div class="grid history-grid">
+
+
+    <!-- LEFT: HISTORY LIST -->
+    <div class="card left">
+      <div class="panel analysis-box">
+
+  <div class="history-header">
+    <h3 class="panel-title">Past Analyses</h3>
+
+    <button onclick="clearHistory()" class="clear-btn">
+      🗑 Clear History
+    </button>
+  </div>
+
+
+        <div class="bars">
+          {% if history and history|length > 0 %}
+  {% for item in history %}
+<a href="/results/{{ item.id }}" class="history-link">
+  <div class="bar compact">
+
+    <div class="bar-top">
+      <span class="file-name" title="{{ item.original_name }}">
+        {{ item.original_name }}
+      </span>
+
+      <span class="prediction">
+        {{ item.prediction }} ({{ "%.1f"|format(item.confidence * 100) }}%)
+      </span>
+    </div>
+
+    <div class="history-meta">
+  {{ item.time }} · 
+  <span class="view-link">View Results</span>
+</div>
+
+  </div>
+</a>
+{% endfor %}
+
+{% else %}
+  <p style="color:#94a3b8;">No analysis history yet</p>
+{% endif %}
+
+          
+        </div>
+      </div>
+    </div>
+
+   
+
+  </div>
+</div>
+
+<script>
+function clearHistory(){
+  fetch("/clear_history")
+    .then(() => {
+      location.reload();   // reload same history page
+    });
+}
+</script>
+
+</body>
+</html>

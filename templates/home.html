@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎵 InstruNet AI — Home</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ================= TOP NAV ================= -->
+<div class="top-nav">
+  <div class="nav-left">🎵 <b>InstruNet AI</b></div>
+  <div class="nav-links">
+    <a href="/home" class="active">Home</a>
+    <a href="/analysis">Analysis</a>
+    <a href="/results">Results</a>
+    <a href="/history">History</a>
+    <a href="/about">About</a>
+  </div>
+</div>
+<!-- ================= END TOP NAV ================= -->
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🎵 InstruNet AI</h1>
+    <p>Deep Learning–based Musical Instrument Recognition</p>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid">
+
+    <!-- LEFT CARD -->
+    <div class="card left">
+      <div class="panel">
+        <h3 class="panel-title">📌 Project Overview</h3>
+        <p style="font-size:14px;line-height:1.6;color:#cbd5f5;">
+          <b>InstruNet AI</b> is an intelligent system that identifies musical
+          instruments from audio recordings using deep learning.
+          The system analyzes audio signals, extracts
+          <b>Mel Spectrograms</b>, and predicts instrument probabilities
+          using a <b>ResNet-18</b> convolutional neural network.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">🎼 Supported Instruments</h3>
+        <ul class="detected">
+          <li>✔ Piano</li>
+          <li>✔ Acoustic & Electric Guitar</li>
+          <li>✔ Violin</li>
+          <li>✔ Flute, Clarinet, Saxophone</li>
+          <li>✔ Trumpet, Cello, Organ, Voice</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CENTER CARD -->
+    <div class="card center">
+      <div class="panel analysis-box">
+        <h3 class="panel-title">⚙️ How It Works</h3>
+
+        <div class="bars">
+          <div class="bar">
+            <span>Audio Upload</span>
+            <div><i style="width:100%"></i></div>
+          </div>
+
+          <div class="bar">
+            <span>Mel Spectrogram Extraction</span>
+            <div><i style="width:100%"></i></div>
+          </div>
+
+          <div class="bar">
+            <span>ResNet-18 Inference</span>
+            <div><i style="width:100%"></i></div>
+          </div>
+
+          <div class="bar">
+            <span>Temporal & Confidence Analysis</span>
+            <div><i style="width:100%"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT CARD -->
+    <div class="card right">
+      <div class="panel">
+        <h3 class="panel-title">📊 Model & Dataset</h3>
+        <ul class="detected">
+          <li>✔ Model: ResNet-18</li>
+          <li>✔ Input: Mel Spectrogram (128 × 128)</li>
+          <li>✔ Output: 11 Instrument Classes</li>
+          <li>✔ Dataset: IRMAS</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">🚀 Start Analysis</h3>
+        <p style="font-size:14px;color:#cbd5f5;">
+          Upload an audio file to visualize waveform,
+          instrument confidence scores, and temporal predictions.
+        </p>
+
+        <a href="/analysis">
+          <button class="analyze">GO TO ANALYSIS</button>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎵 InstruNet AI: Music Instrument Recognition</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="nav-left">🎵 <b>InstruNet AI</b></div>
+  <div class="nav-links">
+    <a href="/home">Home</a>
+    <a href="/analysis" class="active">Analysis</a>
+    <a href="/results">Results</a>
+    <a href="/history">History</a>
+    <a href="/about">About</a>
+  </div>
+</div>
+
+<div class="app">
+  <div class="header">
+    <h1>🎵 InstruNet AI: Music Instrument Recognition</h1>
+    <p>Upload. Analyze. Discover.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT -->
+    <div class="card left">
+      <div class="panel">
+        <h3 class="panel-title">Upload Audio</h3>
+        <div class="upload-box">
+          <div class="icon">☁️</div>
+          <input type="file" id="audioFile" accept=".mp3,.wav,.flac" hidden>
+          <button onclick="document.getElementById('audioFile').click()">Choose File</button>
+          <span>.wav, .mp3, .flac</span>
+        </div>
+      </div>
+
+      <div class="panel now-playing">
+        <h3 class="panel-title">Now Playing</h3>
+        <div class="now-playing-content">
+          <div class="song-name" id="songName">No song selected</div>
+          <audio id="audio" controls></audio>
+        </div>
+        <button class="analyze" id="analyzeBtn" disabled>ANALYZE TRACK</button>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="card center">
+      <div class="panel analysis-box">
+        <h3 class="panel-title">Analysis Results (Top 5)</h3>
+        <div class="waveform-box">
+          <canvas id="waveform" class="waveform"></canvas>
+        </div>
+        <div class="bars" id="bars"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card right">
+      <div class="panel">
+        <h3 class="panel-title">Detected Instruments</h3>
+        <ul class="detected" id="detected"></ul>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Instrument Timeline</h3>
+        <div class="timeline-legend" id="legend"></div>
+        <canvas id="timeline" class="timeline"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="export-wrap">
+  <button class="export-btn" id="exportBtn" disabled>📄 Export PDF</button>
+</div>
+
+<script>
+/* ================= ELEMENTS ================= */
+const audio = document.getElementById("audio");
+const fileInput = document.getElementById("audioFile");
+const songName = document.getElementById("songName");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const exportBtn = document.getElementById("exportBtn");
+
+const waveform = document.getElementById("waveform");
+const wctx = waveform.getContext("2d");
+wctx.lineJoin = "round";
+wctx.lineCap = "round";
+
+const timeline = document.getElementById("timeline");
+const tctx = timeline.getContext("2d");
+
+const barsEl = document.getElementById("bars");
+const detectedEl = document.getElementById("detected");
+const legendEl = document.getElementById("legend");
+
+/* ================= CANVAS RESIZE ================= */
+function resizeCanvas(){
+  waveform.width = waveform.clientWidth;
+  waveform.height = 200;
+  timeline.width = timeline.clientWidth;
+  timeline.height = 180;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+/* ================= AUDIO ANALYSER ================= */
+let audioCtx, analyser, source, dataArray;
+let waveStarted = false;
+
+/* ================= DATA ================= */
+let top5 = [], top2 = [], timelineData = [];
+let lastReportData = null;
+
+const instrumentIndex = {
+  "Cello":0,"Clarinet":1,"Flute":2,"Acoustic Guitar":3,"Electric Guitar":4,
+  "Organ":5,"Piano":6,"Saxophone":7,"Trumpet":8,"Violin":9,"Voice":10
+};
+
+/* ================= FILE INPUT ================= */
+fileInput.addEventListener("change",()=>{
+  sessionStorage.removeItem("instruNet_audio_url");
+
+
+
+  const file = fileInput.files[0];
+  exportBtn.disabled = true;
+
+  barsEl.innerHTML = "";
+  detectedEl.innerHTML = "";
+  legendEl.innerHTML = "";
+  tctx.clearRect(0,0,timeline.width,timeline.height);
+
+  if(!file){
+    analyzeBtn.disabled = true;
+    songName.textContent = "No song selected";
+    return;
+  }
+
+  songName.textContent = file.name;
+  analyzeBtn.disabled = false;
+  audio.src = URL.createObjectURL(file);
+});
+
+/* ================= AUDIO SETUP ================= */
+function setupAudio(){
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+
+  if (source) return; // prevent duplicate source
+
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  source = audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  if (!waveStarted) {
+    waveStarted = true;
+    drawWave();
+  }
+}
+
+
+/* ================= WAVEFORM ================= */
+function drawWave(){
+  requestAnimationFrame(drawWave);
+  if(!analyser) return;
+
+  analyser.getByteTimeDomainData(dataArray);
+  wctx.clearRect(0,0,waveform.width,waveform.height);
+
+  const slice = waveform.width / dataArray.length;
+  const grad = wctx.createLinearGradient(0,0,waveform.width,0);
+  grad.addColorStop(0,"#22d3ee");
+  grad.addColorStop(0.3,"#3b82f6");
+  grad.addColorStop(0.6,"#a855f7");
+  grad.addColorStop(1,"#f97316");
+
+  let x = 0;
+  wctx.strokeStyle = grad;
+  wctx.lineWidth = 2;
+  wctx.beginPath();
+
+  for(let i=0;i<dataArray.length;i++){
+    const y = (dataArray[i]/255) * waveform.height;
+    i===0 ? wctx.moveTo(x,y) : wctx.lineTo(x,y);
+    x += slice;
+  }
+  wctx.stroke();
+}
+
+/* ================= ANALYZE BUTTON ================= */
+analyzeBtn.onclick = uploadAudio;
+
+/* ================= UPLOAD ================= */
+function uploadAudio(){
+  const file = fileInput.files[0];
+  if(!file) return;
+
+  const form = new FormData();
+  form.append("audio", file);
+
+  fetch("/upload",{ method:"POST", body:form })
+    .then(r=>r.json())
+    .then(d=>{
+      const audioUrl = "/uploads/" + d.filename;
+      audio.src = audioUrl;
+      audio.play();
+      setupAudio();
+
+// 🔐 SAVE AUDIO URL FOR NAVIGATION
+sessionStorage.setItem("instruNet_audio_url", audioUrl);
+
+analyze(d.filename);
+    });
+}
+
+/* ================= ANALYZE ================= */
+function analyze(filename){
+  fetch("/analyze",{
+    method:"POST",
+    credentials: "same-origin",   // ⭐ REQUIRED FOR FLASK SESSION
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      filename: filename,
+      display_name: songName.textContent   // ⭐ FIX FILENAME IN HISTORY
+    })
+  })
+
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.error){ alert(d.error); return; }
+
+    lastReportData = d;
+    exportBtn.disabled = false;
+
+    // ✅ SAVE FOR NAVIGATION
+   sessionStorage.setItem(
+  "instruNet_last_analysis",
+  JSON.stringify({
+    filename: d.filename,   // ✅ IMPORTANT
+    song: songName.textContent,
+    data: d
+  })
+);
+
+
+    const sorted = Object.entries(d.average).sort((a,b)=>b[1]-a[1]);
+    top5 = sorted.slice(0,5);
+    top2 = sorted.slice(0,2);
+
+    renderBars();
+    renderDetected();
+    prepareTimeline();
+    renderTimeline();
+  });
+}
+
+
+/* ================= RENDER ================= */
+function renderBars(){
+  barsEl.innerHTML="";
+  top5.forEach(([n,v])=>{
+    barsEl.innerHTML+=`
+      <div class="bar">
+        <span class="bar-top">
+  ${n}
+  <b>${(v*100).toFixed(1)}%</b>
+</span>
+
+
+        <div><i style="width:${v*100}%"></i></div>
+      </div>`;
+  });
+}
+
+function renderDetected(){
+  detectedEl.innerHTML="";
+  top5.forEach(([n,v],i)=>{
+    detectedEl.innerHTML+=`<li>${i<2?"⭐":"✔"} ${n} – ${(v*100).toFixed(1)}%</li>`;
+  });
+}
+
+function prepareTimeline(){
+  timelineData = lastReportData.timeline.map(f =>
+    top2.map(([n]) => f.probs[instrumentIndex[n]])
+  );
+}
+
+function renderTimeline(){
+  tctx.clearRect(0,0,timeline.width,timeline.height);
+
+  const padLeft=45,padTop=10,padBottom=30;
+  const W=timeline.width-padLeft-10;
+  const H=timeline.height-padTop-padBottom;
+  const step=W/(timelineData.length-1);
+  const colors=["#3b82f6","#f97316"];
+
+tctx.strokeStyle="#94a3b8";
+tctx.lineWidth = 2;   // ⭐ make axis thicker
+tctx.beginPath();
+tctx.moveTo(padLeft,padTop);
+tctx.lineTo(padLeft,padTop+H);
+tctx.lineTo(padLeft+W,padTop+H);
+tctx.stroke();
+
+tctx.lineWidth = 1;   // reset for graph lines
+
+
+
+
+  tctx.fillStyle="#94a3b8";
+  tctx.font="bold 13px Segoe UI";
+tctx.fillStyle="#e2e8f0";   // brighter text
+
+
+  tctx.textAlign="right";
+  [0,0.5,1].forEach(v=>{
+    const y=padTop+H-v*H;
+    tctx.fillText(v.toFixed(1),padLeft-6,y+4);
+  });
+
+  tctx.textAlign="center";
+  const tick=Math.max(1,Math.floor(timelineData.length/4));
+  for(let i=0;i<timelineData.length;i+=tick){
+    tctx.fillText(`${i}s`,padLeft+i*step,padTop+H+18);
+  }
+
+  legendEl.innerHTML = "";
+
+top2.forEach(([n], i) => {
+  legendEl.innerHTML += `
+    <span style="
+      color:${colors[i]};
+      font-weight:600;
+      margin-right:18px;
+    ">
+      ● ${n}
+    </span>`;
+});
+
+
+  top2.forEach((_,k)=>{
+    tctx.beginPath();
+    timelineData.forEach((f,i)=>{
+      const x=padLeft+i*step;
+      const y=padTop+H-f[k]*H;
+      i?tctx.lineTo(x,y):tctx.moveTo(x,y);
+    });
+    tctx.strokeStyle=colors[k];
+    tctx.lineWidth=2;
+    tctx.stroke();
+  });
+}
+/* ================= RESTORE DURING NAVIGATION ================= */
+const navType = performance.getEntriesByType("navigation")[0]?.type;
+
+if (navType !== "reload") {
+  const saved = sessionStorage.getItem("instruNet_last_analysis");
+  if (saved) {
+    const parsed = JSON.parse(saved);
+
+    songName.textContent = parsed.song;
+    lastReportData = parsed.data;
+    exportBtn.disabled = false;
+    analyzeBtn.disabled = false;
+
+    const sorted = Object.entries(parsed.data.average)
+      .sort((a,b)=>b[1]-a[1]);
+
+    top5 = sorted.slice(0,5);
+    top2 = sorted.slice(0,2);
+
+    renderBars();
+    renderDetected();
+    prepareTimeline();
+    renderTimeline();
+
+    // Restore audio
+    const savedAudio = sessionStorage.getItem("instruNet_audio_url");
+    if (savedAudio) {
+      source = null;        // 🔑 RESET old MediaElementSource
+    waveStarted = false;  // 🔑 allow waveform to restart
+      audio.src = savedAudio;
+    }
+  }
+}
+/* ================= RESUME WAVEFORM ON PLAY ================= */
+audio.addEventListener("play", () => {
+  setupAudio();
+});
+
+exportBtn.onclick = function() {
+  window.location.href = "/export_pdf";
+};
+
+</script>
+
+</body>
+</html>
