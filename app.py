@@ -1,3 +1,7 @@
+import os
+os.environ["NUMBA_DISABLE_JIT"] = "1"
+
+
 from flask import (
     Flask, render_template, request, jsonify,
     send_from_directory, session, redirect, url_for, send_file
