@@ -19,6 +19,18 @@ InstruNet AI is a Flask-based web application that recognizes musical instrument
 - 🎨 Modern responsive UI design
 
 ---
+## 📂 Dataset
+
+This project is trained and evaluated using the **IRMAS (Instrument Recognition in Musical Audio Signals)** dataset.
+
+- 🎵 11 Instrument Classes
+- 🎧 6,705 Training Samples
+- 🧪 2,874 Test Samples
+- 🎼 3-second audio excerpts
+
+🔗 Dataset Link:
+https://www.upf.edu/web/mtg/irmas
+---
 
 ## 🏗 System Architecture
 
