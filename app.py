@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.secret_key = "instrunet-temp-history"
 
 UPLOAD_FOLDER = "uploads"
-ALLOWED_EXT = {"wav", "mp3", "flac"}
+ALLOWED_EXT = {"wav"}
 app.config["MAX_CONTENT_LENGTH"] = 15 * 1024 * 1024
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
