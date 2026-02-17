@@ -86,7 +86,7 @@ InstruNet-AI/
 
 ### 1️⃣ Clone Repository
 
-git clone https://github.com/your-username/instrunet-ai.git
+git clone https://github.com/YashHaval/InstruNet-AI.git
 
 cd instrunet-ai
 
