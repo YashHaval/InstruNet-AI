@@ -171,9 +171,12 @@ python app.py
 
 ## 🚀 Future Improvements
 
-- Add real-time microphone input
-- Deploy using Docker
-- Add database for persistent history
-- Add multi-label prediction support
-- Improve model accuracy with data augmentation
+- 🎙 Add real-time microphone input for live instrument detection
+- 🐳 Deploy the application using Docker for easy scalability
+- 🗄 Add database integration (SQLite/PostgreSQL) for persistent history
+- 🎼 Support multi-label prediction for overlapping instruments
+- 📊 Improve model accuracy using data augmentation techniques
+- 🌐 Deploy to cloud platforms (AWS / Render / Railway)
+- 📱 Improve UI responsiveness for mobile devices
+
 
