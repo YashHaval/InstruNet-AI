@@ -58,7 +58,7 @@ InstruNet AI is a Flask-based web application that recognizes musical instrument
 ---
 
 ## 📂 Project Structure
-
+```
 InstruNet-AI/
 │
 ├── model/
@@ -78,7 +78,7 @@ InstruNet-AI/
 ├── exports/
 │
 └── app.py
-
+```
 
 ---
 
